@@ -1,4 +1,4 @@
-// This file is auto-generated from recommender.idl(0.4.5-347-g86989a6) with jenerator version 0.4.5-412-g37c57d9/develop
+// This file is auto-generated from recommender.idl(0.5.2-68-g68e898d) with jenerator version 0.5.4-224-g49229fa/develop
 // *** DO NOT EDIT ***
 
 #include <map>
@@ -6,9 +6,8 @@
 #include <vector>
 #include <utility>
 
-#include <glog/logging.h>
-
 #include "jubatus/core/common/exception.hpp"
+#include "../../server/common/logger/logger.hpp"
 #include "../../server/framework/aggregators.hpp"
 #include "../../server/framework/proxy.hpp"
 #include "recommender_types.hpp"
@@ -48,17 +47,15 @@ int run_proxy(int argc, char* argv[]) {
         jubatus::core::fv_converter::datum,
         jubatus::core::fv_converter::datum)>(
         &jubatus::server::framework::pass<jubatus::core::fv_converter::datum>));
-    k.register_async_broadcast<std::vector<std::string> >("get_all_rows",
-        jubatus::util::lang::function<std::vector<std::string>(
-        std::vector<std::string>, std::vector<std::string>)>(
-        &jubatus::server::framework::concat<std::string>));
+    k.register_async_random<std::vector<std::string> >("get_all_rows");
     k.register_async_random<float, jubatus::core::fv_converter::datum,
         jubatus::core::fv_converter::datum>("calc_similarity");
     k.register_async_random<float, jubatus::core::fv_converter::datum>(
         "calc_l2norm");
     return k.run();
   } catch (const jubatus::core::common::exception::jubatus_exception& e) {
-    LOG(FATAL) << e.diagnostic_information(true);
+    LOG(FATAL) << "exception in proxy main thread: "
+               << e.diagnostic_information(true);
     return -1;
   }
 }

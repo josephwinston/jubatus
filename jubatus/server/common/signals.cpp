@@ -20,7 +20,7 @@
 #include <cerrno>
 #include <csignal>
 
-#include <glog/logging.h>
+#include "jubatus/server/common/logger/logger.hpp"
 #include "jubatus/util/concurrent/lock.h"
 #include "jubatus/util/concurrent/mutex.h"
 #include "jubatus/util/concurrent/thread.h"
@@ -31,7 +31,6 @@
 namespace jubatus {
 namespace server {
 namespace common {
-namespace util {
 
 namespace {
 
@@ -116,9 +115,10 @@ void handle_sigterm() {
 
     return;  // signal handling is successfully done.
   } catch (const jubatus::core::common::exception::jubatus_exception& e) {
-    LOG(FATAL) << e.diagnostic_information(true);
+    LOG(FATAL) << "exception in sigwait thread: "
+               << e.diagnostic_information(true);
   } catch (const std::exception& e) {
-    LOG(FATAL) << e.what();
+    LOG(FATAL) << "error in sigwait thread: " << e.what();
   }
   JUBATUS_ASSERT_UNREACHABLE();
 }
@@ -170,7 +170,6 @@ void set_action_on_term(jubatus::util::lang::function<void()> action) {
   action_on_term.swap(action);
 }
 
-}  // namespace util
 }  // namespace common
 }  // namespace server
 }  // namespace jubatus

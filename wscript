@@ -4,7 +4,7 @@ from waflib.Errors import TaskNotReady
 import os
 import sys
 
-VERSION = '0.5.0'
+VERSION = '0.6.0'
 APPNAME = 'jubatus'
 
 top = '.'
@@ -29,7 +29,7 @@ def options(opt):
                  dest='gcov', help='only for debug')
 
   opt.add_option('--enable-zktest',
-                 action='store_true', default=False, 
+                 action='store_true', default=False,
                  dest='zktest', help='zk should run in localhost:2181')
 
   # use (base + 10) ports for RPC module tests
@@ -37,10 +37,15 @@ def options(opt):
                  default=60023, choices=map(str, xrange(1024, 65535 - 10)),
                  help='base port number for RPC module tests')
 
+  opt.add_option('--disable-eigen',
+                 action='store_true', default=False,
+                 dest='disable_eigen', help='disable internal Eigen and algorithms using it')
+
   opt.recurse(subdirs)
 
 def configure(conf):
-  conf.env.CXXFLAGS += ['-O2', '-Wall', '-g', '-pipe'];
+  conf.env.CXXFLAGS += ['-O2', '-Wall', '-g', '-pipe', '-pthread'];
+  conf.env.LINKFLAGS += ['-pthread']
 
   conf.load('compiler_cxx')
   conf.load('unittest_gtest')
@@ -61,7 +66,8 @@ def configure(conf):
   # pkg-config tests
   conf.find_program('pkg-config') # make sure that pkg-config command exists
   try:
-    conf.check_cfg(package = 'libglog', args = '--cflags --libs')
+    conf.check_cfg(package = 'liblog4cxx', args = '--cflags --libs')
+    conf.check_cfg(package = 'jubatus_core', args = '--cflags --libs')
   except conf.errors.ConfigurationError:
     e = sys.exc_info()[1]
     conf.to_log("PKG_CONFIG_PATH: " + os.environ.get('PKG_CONFIG_PATH', ''))
@@ -110,6 +116,10 @@ def configure(conf):
 
   conf.define('BUILD_DIR',  conf.bldnode.abspath())
 
+  conf.env.USE_EIGEN = not Options.options.disable_eigen
+  if conf.env.USE_EIGEN:
+    conf.define('JUBATUS_USE_EIGEN', 1)
+
   conf.recurse(subdirs)
 
 def build(bld):
@@ -134,13 +144,14 @@ def build(bld):
 
   bld.recurse(subdirs)
 
+  bld.install_files('${PREFIX}/share/jubatus/example/log', 'log4cxx.xml')
+
 def cpplint(ctx):
   import fnmatch, tempfile
   cpplint = ctx.path.find_node('tools/codestyle/cpplint/cpplint.py')
   src_dir = ctx.path.find_node('jubatus')
   file_list = []
   excludes = ['jubatus/server/third_party/*',
-              'jubatus/server/server/*_server.hpp',
               'jubatus/server/server/*_impl.cpp',
               'jubatus/server/server/*_proxy.cpp',
               'jubatus/server/server/*_client.hpp',
@@ -202,3 +213,6 @@ def regenerate_client(ctx):
       pass
     ctx.cmd_and_log(jenerator_command, cwd=server_node.abspath())
     print()
+
+def check_cmath(ctx):
+  ctx.cmd_and_log('tools/codestyle/cmath_finder.sh')

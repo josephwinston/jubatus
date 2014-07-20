@@ -294,7 +294,6 @@ rpc_result<Res> rpc_mclient::join_(
     } catch (...) {
       // continue process next result when exception thrown.
       // store exception_thrower to list of errors
-
       result.error.push_back(
           rpc_error(hosts_[i].first, hosts_[i].second,
               jubatus::core::common::exception::get_current_exception()));
@@ -317,6 +316,8 @@ rpc_result_object rpc_mclient::call(const std::string& m, const A0& a0) {
   call_(m, msgpack::type::tuple<const A0&>(a0));
   return wait(m);
 }
+
+std::string create_error_string(const msgpack::object& error);
 
 }  // namespace mprpc
 }  // namespace common

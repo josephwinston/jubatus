@@ -22,12 +22,12 @@
 #include <utility>
 #include <vector>
 
-#include <glog/logging.h>
 #include <jubatus/msgpack/rpc/client.h>
 #include <msgpack.hpp>
 #include "jubatus/util/concurrent/thread.h"
 #include "jubatus/util/lang/function.h"
 #include "jubatus/util/lang/bind.h"
+#include "jubatus/server/common/logger/logger.hpp"
 
 #include "proxy_common.hpp"
 #include "server_util.hpp"
@@ -417,8 +417,13 @@ class proxy
       const Tuple& args) {
     std::vector<std::pair<std::string, int> > list;
     std::string name = args.template get<0>();
+
+    update_request_counter();
+
     get_members_(name, list);
     const std::pair<std::string, int>& c = list[rng_(list.size())];
+
+    update_forward_counter();
 
     async_task_loop::template call_apply<R, Tuple>(
         c.first, c.second, method_name, args, a_, a_.interconnect_timeout, req);
@@ -483,7 +488,12 @@ class proxy
       jubatus::util::lang::function<R(R, R)>& agg) {
     std::vector<std::pair<std::string, int> > list;
     std::string name = args.template get<0>();
+
+    update_request_counter();
+
     get_members_(name, list);
+
+    update_forward_counter(list.size());
 
     async_task_loop::template call_apply<R, Tuple>(
         list, method_name, args, a_, a_.interconnect_timeout, req, agg);
@@ -579,7 +589,12 @@ class proxy
     std::vector<std::pair<std::string, int> > list;
     std::string name = args.template get<0>();
     std::string id = args.template get<1>();
+
+    update_request_counter();
+
     get_members_from_cht_(name, id, list, N);
+
+    update_forward_counter(list.size());
 
     async_task_loop::template call_apply<R, Tuple>(
         list, method_name, args, a_, a_.interconnect_timeout, req, agg);
@@ -657,6 +672,13 @@ class proxy
     }
 
     Res aggregate_results() {
+      if (errors_.size() != 0) {
+        LOG(WARNING) << "error occurred in " << errors_.size()
+                     << " out of " << futures_.size() << " requests";
+        LOG(WARNING) << jubatus::server::common::mprpc::to_string(
+            jubatus::server::common::mprpc::error_multi_rpc(errors_));
+      }
+
       if (results_.size() == 0) {
         return Res();  // TODO(kmaehashi): we should raise exception ?
       }

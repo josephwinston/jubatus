@@ -107,6 +107,32 @@ TEST_F(zk_trivial, create_set_read) {
   zk_->remove(root_path);
 }
 
+TEST_F(zk_trivial, read_more_than_1kiB) {
+  string s(2000, 'a');
+  zk_->create(root_path, s, true);
+
+  string dat;
+  zk_->read(root_path, dat);
+  ASSERT_EQ(s, dat);
+
+  zk_->remove(root_path);
+}
+
+TEST_F(zk_trivial, read_empty) {
+  zk_->create(root_path, "", true);
+
+  string dat;
+  zk_->read(root_path, dat);
+  ASSERT_EQ("", dat);
+
+  zk_->remove(root_path);
+}
+
+TEST_F(zk_trivial, read_unknown_path) {
+  string dat;
+  ASSERT_FALSE(zk_->read("/zktest_non_exists_path", dat));
+}
+
 // TODO(kashihara): test lock_service::hd_list()
 
 TEST_F(zk_trivial, create_seq) {
@@ -196,3 +222,6 @@ TEST_F(zk_trivial, trivial_with_membershp) {
   zk_->remove(path);
 }
 
+TEST_F(zk_trivial, get_connected_host_and_port) {
+  ASSERT_EQ("127.0.0.1:2181", zk_->get_connected_host_and_port());
+}

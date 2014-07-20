@@ -18,6 +18,7 @@
 #define JUBATUS_SERVER_FRAMEWORK_MIXER_LINEAR_MIXER_HPP_
 
 #include <string>
+#include <utility>
 #include <vector>
 #include "jubatus/util/concurrent/condition.h"
 #include "jubatus/util/concurrent/mutex.h"
@@ -43,10 +44,14 @@ class linear_communication {
       const jubatus::util::lang::shared_ptr<common::lock_service>& zk,
       const std::string& type,
       const std::string& name,
-      int timeout_sec);
+      int timeout_sec,
+      const std::pair<std::string, int>& my_id);
 
   // Call update_members once before using get_diff and put_diff
   virtual size_t update_members() = 0;
+
+  // Get random one model from another server
+  virtual core::common::byte_buffer get_model() = 0;
 
   // We use shared_ptr instead of auto_ptr/unique_ptr
   // because in C++03 specification limits.
@@ -57,54 +62,67 @@ class linear_communication {
   virtual void get_diff(common::mprpc::rpc_result_object& result) const = 0;
   // it can throw common::mprpc exception
   virtual void put_diff(
-      const std::vector<core::common::byte_buffer>& mixed) const = 0;
+      const core::common::byte_buffer& mixed,
+      common::mprpc::rpc_result_object& result) const = 0;
+
+  virtual bool register_active_list() const = 0;
+  virtual bool unregister_active_list() const = 0;
 };
 
 class linear_mixer : public mixer {
  public:
   linear_mixer(
       jubatus::util::lang::shared_ptr<linear_communication> communicaiton,
+      jubatus::util::concurrent::rw_mutex& mutex,
       unsigned int count_threshold,
       unsigned int tick_threshold);
+  ~linear_mixer();
 
   void register_api(rpc_server_t& server);
-  void set_mixable_holder(
-      jubatus::util::lang::shared_ptr<core::framework::mixable_holder> m);
+  void set_driver(core::driver::driver_base*);
 
   void start();
   void stop();
+  bool do_mix();
 
   void updated();
 
   void get_status(server_base::status_t& status) const;
 
   void mix();
+  void update_model();
+
+  std::string type() const {
+    return "linear_mixer";
+  }
 
  private:
-  void mixer_loop();
+  void stabilizer_loop();
 
   void clear();
 
-  std::vector<core::common::byte_buffer> get_diff(int d);
-  int put_diff(const std::vector<core::common::byte_buffer>& unpacked);
+  core::common::byte_buffer get_diff(int a);
+  int put_diff(const core::common::byte_buffer&);
+  core::common::byte_buffer get_model(int d) const;
 
   jubatus::util::lang::shared_ptr<linear_communication> communication_;
   unsigned int count_threshold_;
   unsigned int tick_threshold_;
 
   unsigned int counter_;
-  unsigned int mix_count_;
   jubatus::util::system::time::clock_time ticktime_;
 
   bool is_running_;
 
+  // true means the model is delayed from cluster
+  bool is_obsolete_;
+
   jubatus::util::concurrent::thread t_;
   mutable jubatus::util::concurrent::mutex m_;
+  jubatus::util::concurrent::rw_mutex& model_mutex_;
   jubatus::util::concurrent::condition c_;
 
-  jubatus::util::lang::shared_ptr<core::framework::mixable_holder>
-    mixable_holder_;
-  std::vector<core::framework::mixable0*> mixables_;
+  core::driver::driver_base* driver_;
 };
 
 }  // namespace mixer

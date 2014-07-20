@@ -25,7 +25,7 @@
 //       |  |         | | ___    ___  __ | |          / __/    //
 //       |  | |-|  |-|| |/   \  /   \| | | | |^|  |^|| (__     //
 //       |  | | |  | ||    ^  ||  ^    | | | | |  | | \__ \    //
-//       |  | | \_/  ||    O   || O    | | |_| \_/  | ___) |   //
+//       |  | | \_/  ||    O  ||  O    | | |_| \_/  | ___) |   //
 //       |  |  \__/|_||_|\___/  \___/|_| |__/ \__/|_| \___/    //
 //       | /                                                   //
 //      / /                                                    //
@@ -40,5 +40,6 @@
 #include <jubatus/client/graph_client.hpp>
 #include <jubatus/client/anomaly_client.hpp>
 #include <jubatus/client/nearest_neighbor_client.hpp>
+#include <jubatus/client/clustering_client.hpp>
 
 #endif  // JUBATUS_CLIENT_HPP_

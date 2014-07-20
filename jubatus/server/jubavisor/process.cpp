@@ -16,6 +16,7 @@
 
 #include "process.hpp"
 
+#include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -29,12 +30,11 @@
 #include <string>
 #include <vector>
 
-#include <glog/logging.h>
+#include "jubatus/server/common/logger/logger.hpp"
 #include "jubatus/util/lang/cast.h"
 
 #include "jubatus/core/common/assert.hpp"
 #include "jubatus/core/common/exception.hpp"
-#include "../common/util.hpp"
 
 using jubatus::util::lang::lexical_cast;
 
@@ -109,7 +109,7 @@ bool process::spawn_link(int p) {
       "-I", lexical_cast<std::string, int>(server_option_.interconnect_timeout),
       "-d", server_option_.datadir,
       "-l", server_option_.logdir,
-      "-e", lexical_cast<std::string, int>(server_option_.loglevel),
+      "-g", server_option_.log_config,
       "-s", lexical_cast<std::string, int>(server_option_.interval_sec),
       "-i", lexical_cast<std::string, int>(server_option_.interval_count),
       "-x", server_option_.mixer,
@@ -117,9 +117,6 @@ bool process::spawn_link(int p) {
     std::vector<const char*> arg_list;
     for (size_t i = 0; i < sizeof(argv) / sizeof(*argv); ++i) {
       arg_list.push_back(argv[i].c_str());
-    }
-    if (server_option_.join) {
-      arg_list.push_back("-j");
     }
     arg_list.push_back(NULL);
 
@@ -130,9 +127,8 @@ bool process::spawn_link(int p) {
   } else {
     perror("failed on forking new process");
     perror(cmd.c_str());
-    LOG(ERROR) << cmd;
-    LOG(ERROR) << getenv("PATH");
-    LOG(ERROR) << strerror(errno);
+    LOG(ERROR) << "failed to fork new server process: " << cmd
+               << ": " << strerror(errno) << " (PATH=" << getenv("PATH") << ")";
     return false;
   }
 

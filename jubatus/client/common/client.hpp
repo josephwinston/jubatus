@@ -60,6 +60,25 @@ class client {
     return f.get<std::map<std::string, std::map<std::string, std::string> > >();
   }
 
+  bool do_mix() {
+    msgpack::rpc::future f = c_.call("do_mix", name_);
+    return f.get<bool>();
+  }
+
+  std::map<std::string, std::map<std::string, std::string> >
+      get_proxy_status() {
+    msgpack::rpc::future f = c_.call("get_proxy_status", name_);
+    return f.get<std::map<std::string, std::map<std::string, std::string> > >();
+  }
+
+  std::string get_name() const {
+    return name_;
+  }
+
+  void set_name(const std::string& name) {
+    name_ = name;
+  }
+
  protected:
   msgpack::rpc::client c_;
   std::string name_;
