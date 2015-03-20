@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -49,6 +49,7 @@ class mecab_splitter : public jubatus::core::fv_converter::word_splitter {
 extern "C" {
 jubatus::plugin::fv_converter::mecab_splitter* create(
     const std::map<std::string, std::string>& params);
+std::string version();
 }
 
 #endif  // JUBATUS_PLUGIN_FV_CONVERTER_MECAB_SPLITTER_HPP_

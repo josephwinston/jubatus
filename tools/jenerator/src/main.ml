@@ -1,6 +1,6 @@
 (*
  Jubatus: Online machine learning framework for distributed environment
- Copyright (C) 2013 Preferred Infrastructure and Nippon Telegraph and
+ Copyright (C) 2013 Preferred Networks and Nippon Telegraph and
  Telephone Corporation.
 
  This library is free software; you can redistribute it and/or
@@ -51,6 +51,7 @@ let _ =
     | "python" -> Python.generate
     | "java" -> Java.generate
     | "ruby" -> Ruby.generate
+    | "go" -> Go.generate
     | _ ->
       print_endline ("Unsupported language: \"" ^ conf.Config.language ^ "\"");
       exit 1 in

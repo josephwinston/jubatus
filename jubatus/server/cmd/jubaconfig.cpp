@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2012 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2012 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -66,6 +66,10 @@ try {
   // We don't provide logging configuration feature for command line tools;
   // just print logs to standard output.
   jubatus::server::common::logger::configure();
+  if (!jubatus::server::common::logger::is_configured()) {
+    std::cerr << "failed to configure logger" << std::endl;
+    ::exit(1);
+  }
 
   cmdline::parser p;
   p.add<std::string>("cmd", 'c',

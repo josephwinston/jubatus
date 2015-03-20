@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011-2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011-2013 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
 #include "nearest_neighbor_serv.hpp"
 
 #include <string>
-#include "jubatus/server/common/logger/logger.hpp"
+#include <vector>
 #include "jubatus/util/concurrent/lock.h"
 #include "jubatus/util/lang/cast.h"
 #include "jubatus/util/text/json.h"
@@ -27,6 +27,7 @@
 #include "jubatus/core/fv_converter/datum.hpp"
 #include "jubatus/core/fv_converter/revert.hpp"
 #include "jubatus/core/nearest_neighbor/nearest_neighbor_factory.hpp"
+#include "../common/logger/logger.hpp"
 #include "../framework/mixer/mixer_factory.hpp"
 
 using std::string;
@@ -56,7 +57,7 @@ nearest_neighbor_serv::nearest_neighbor_serv(
     const framework::server_argv& a,
     const shared_ptr<common::lock_service>& zk)
     : server_base(a),
-      mixer_(create_mixer(a, zk, rw_mutex())) {
+      mixer_(create_mixer(a, zk, rw_mutex(), user_data_version())) {
 }
 
 nearest_neighbor_serv::~nearest_neighbor_serv() {
@@ -168,6 +169,12 @@ neighbor_result nearest_neighbor_serv::similar_row_from_datum(
   check_set_config();
 
   return nearest_neighbor_->similar_row(d, ret_num);
+}
+
+std::vector<std::string> nearest_neighbor_serv::get_all_rows() const {
+  check_set_config();
+
+  return nearest_neighbor_->get_all_rows();
 }
 
 void nearest_neighbor_serv::check_set_config() const {

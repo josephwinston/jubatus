@@ -4,7 +4,8 @@ from waflib.Errors import TaskNotReady
 import os
 import sys
 
-VERSION = '0.6.0'
+VERSION = '0.7.0'
+ABI_VERSION = VERSION
 APPNAME = 'jubatus'
 
 top = '.'
@@ -34,12 +35,12 @@ def options(opt):
 
   # use (base + 10) ports for RPC module tests
   opt.add_option('--rpc-test-port-base',
-                 default=60023, choices=map(str, xrange(1024, 65535 - 10)),
+                 default=61023, choices=map(str, xrange(1024, 65535 - 10)),
                  help='base port number for RPC module tests')
 
-  opt.add_option('--disable-eigen',
-                 action='store_true', default=False,
-                 dest='disable_eigen', help='disable internal Eigen and algorithms using it')
+  opt.add_option('--fsanitize',
+                 action='store', default="",
+                 dest='fsanitize', help='specify sanitizer')
 
   opt.recurse(subdirs)
 
@@ -57,6 +58,10 @@ def configure(conf):
   conf.define('JUBATUS_APPNAME', APPNAME)
   conf.define('JUBATUS_PLUGIN_DIR', conf.env.JUBATUS_PLUGIN_DIR)
   conf.write_config_header('jubatus/config.hpp', guard="JUBATUS_CONFIG_HPP_", remove=False)
+
+  # Version constants
+  conf.env.VERSION = VERSION
+  conf.env.ABI_VERSION = ABI_VERSION
 
   conf.check_cxx(lib = 'msgpack')
   conf.check_cxx(lib = 'jubatus_mpio')
@@ -85,7 +90,9 @@ def configure(conf):
   conf.check_cxx(header_name = 'arpa/inet.h')
   conf.check_cxx(header_name = 'dlfcn.h')
 
-  if not Options.options.debug:
+  if Options.options.debug:
+    conf.define('_GLIBCXX_DEBUG', 1)
+  else:
     conf.define('NDEBUG', 1)
     conf.define('JUBATUS_DISABLE_ASSERTIONS', 1)
 
@@ -116,9 +123,10 @@ def configure(conf):
 
   conf.define('BUILD_DIR',  conf.bldnode.abspath())
 
-  conf.env.USE_EIGEN = not Options.options.disable_eigen
-  if conf.env.USE_EIGEN:
-    conf.define('JUBATUS_USE_EIGEN', 1)
+  sanitizer_names = Options.options.fsanitize
+  if len(sanitizer_names) > 0:
+    conf.env.append_unique('CXXFLAGS', '-fsanitize=' + sanitizer_names)
+    conf.env.append_unique('LINKFLAGS', '-fsanitize=' + sanitizer_names)
 
   conf.recurse(subdirs)
 
@@ -140,7 +148,8 @@ def build(bld):
       PACKAGE = APPNAME,
       VERSION = VERSION)
 
-  bld(name = 'core_headers', export_includes = './')
+  bld(name = 'server_headers', export_includes = './')
+  bld(name = 'client_headers', export_includes = './')
 
   bld.recurse(subdirs)
 

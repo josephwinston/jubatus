@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2013 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@ void prepare_signal_handling();  // NOTE: this function won't work well
                                  //   you should call this function
                                  //   at the head of program.
 void set_action_on_term(jubatus::util::lang::function<void()> action);
+void set_action_on_hup(jubatus::util::lang::function<void()> action);
 
 }  // namespace common
 }  // namespace server

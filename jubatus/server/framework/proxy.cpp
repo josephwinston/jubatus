@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011,2012 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011,2012 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,10 +20,10 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "jubatus/server/common/logger/logger.hpp"
 
 #include "jubatus/core/common/exception.hpp"
 #include "aggregators.hpp"
+#include "../common/logger/logger.hpp"
 #include "../common/membership.hpp"
 #include "../common/signals.hpp"
 #include "../common/system.hpp"
@@ -33,7 +33,6 @@ namespace jubatus {
 namespace server {
 namespace framework {
 
-__thread msgpack::rpc::session_pool* private_session_pool_ = NULL;
 __thread proxy::async_task_loop*
   proxy::async_task_loop::private_async_task_loop_ = NULL;
 

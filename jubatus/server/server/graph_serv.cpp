@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011,2012 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011,2012 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "jubatus/server/common/logger/logger.hpp"
 #include "jubatus/util/concurrent/lock.h"
 #include "jubatus/util/text/json.h"
 #include "jubatus/util/system/time_util.h"
@@ -35,6 +34,7 @@
 #include "../common/cht.hpp"
 #endif
 #include "../common/global_id_generator_standalone.hpp"
+#include "../common/logger/logger.hpp"
 #include "../common/unique_lock.hpp"
 #ifdef HAVE_ZOOKEEPER_H
 #include "../common/global_id_generator_zk.hpp"
@@ -104,7 +104,7 @@ graph_serv::graph_serv(
     const framework::server_argv& a,
     const jubatus::util::lang::shared_ptr<lock_service>& zk)
     : server_base(a),
-      mixer_(create_mixer(a, zk, rw_mutex())) {
+      mixer_(create_mixer(a, zk, rw_mutex(), user_data_version())) {
 
 #ifdef HAVE_ZOOKEEPER_H
   if (a.is_standalone()) {

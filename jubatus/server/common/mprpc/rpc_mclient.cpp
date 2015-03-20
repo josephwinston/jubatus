@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2012 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2012 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -17,9 +17,9 @@
 #include "rpc_mclient.hpp"
 #include <string>
 #include <utility>
-#include "jubatus/server/common/logger/logger.hpp"
 
 #include "jubatus/util/system/syscall.h"
+#include "../logger/logger.hpp"
 
 namespace jubatus {
 namespace server {

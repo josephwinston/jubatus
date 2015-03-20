@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2013 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,13 +20,13 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "jubatus/server/common/logger/logger.hpp"
 #include "jubatus/util/lang/cast.h"
 #include "jubatus/util/text/json.h"
 #include "jubatus/core/clustering/clustering_config.hpp"
 #include "jubatus/core/common/exception.hpp"
 #include "jubatus/core/common/jsonconfig.hpp"
 #include "jubatus/core/fv_converter/converter_config.hpp"
+#include "../common/logger/logger.hpp"
 #include "../framework/mixer/mixer_factory.hpp"
 
 using jubatus::util::lang::lexical_cast;
@@ -54,7 +54,7 @@ clustering_serv::clustering_serv(
     const framework::server_argv& a,
     const shared_ptr<common::lock_service>& zk)
     : server_base(a),
-      mixer_(create_mixer(a, zk, rw_mutex())) {
+      mixer_(create_mixer(a, zk, rw_mutex(), user_data_version())) {
 }
 
 clustering_serv::~clustering_serv() {

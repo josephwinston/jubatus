@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2014 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2014 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,10 @@ class so_factory : public core::fv_converter::factory_extender {
     create_binary_feature(
         const std::string& name,
         const core::fv_converter::param_t&) const;
+
+  core::fv_converter::combination_feature* create_combination_feature(
+      const std::string& name,
+      const core::fv_converter::param_t&) const;
 
   core::fv_converter::num_filter*
     create_num_filter(

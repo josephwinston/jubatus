@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011-2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011-2013 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -33,10 +33,10 @@
 #include "jubatus/core/common/exception.hpp"
 #include "jubatus/core/framework/mixable.hpp"
 #include "jubatus/core/framework/stream_writer.hpp"
-#include "jubatus/server/common/logger/logger.hpp"
 #include "../../common/membership.hpp"
 #include "../../common/mprpc/rpc_mclient.hpp"
 #include "../../common/unique_lock.hpp"
+#include "../../common/logger/logger.hpp"
 
 using std::map;
 using std::vector;
@@ -77,7 +77,7 @@ class linear_communication_impl : public linear_communication {
   void put_diff(
       const byte_buffer& a,
       common::mprpc::rpc_result_object& result) const;
-  byte_buffer get_model();
+  std::pair<uint64_t, byte_buffer> get_model();
 
   bool register_active_list() const {
     common::unique_lock lk(m_);
@@ -136,14 +136,14 @@ size_t linear_communication_impl::update_members() {
   return servers_.size();
 }
 
-byte_buffer linear_communication_impl::get_model() {
+std::pair<uint64_t, byte_buffer> linear_communication_impl::get_model() {
   update_members();
   for (;;) {
     common::unique_lock lk(m_);
 
     // use time as pseudo random number(it should enough)
     if (servers_.empty() || servers_.size() == 1) {
-      return byte_buffer();
+      return make_pair(0, byte_buffer());
     }
 
     const jubatus::util::system::time::clock_time now(get_clock_time());
@@ -156,11 +156,14 @@ byte_buffer linear_communication_impl::get_model() {
     }
 
     msgpack::rpc::client cli(server_ip, server_port);
+    cli.set_timeout(timeout_sec_);
     msgpack::rpc::future result(cli.call("get_model", 0));
 
     try {
-      const byte_buffer got_model_data(result.get<byte_buffer>());
-      LOG(INFO) << "got model(serialized data) " << got_model_data.size()
+      const std::pair<uint64_t, byte_buffer> got_model_data(
+          result.get<std::pair<uint64_t, byte_buffer> >());
+      LOG(INFO) << "got model(serialized data) "
+                << got_model_data.second.size()
                 << " from server[" << server_ip << ":" << server_port << "] ";
       return got_model_data;
     } catch (const std::runtime_error& e) {
@@ -243,10 +246,12 @@ linear_mixer::linear_mixer(
     jubatus::util::lang::shared_ptr<linear_communication> communication,
     jubatus::util::concurrent::rw_mutex& mutex,
     unsigned int count_threshold,
-    unsigned int tick_threshold)
+    unsigned int tick_threshold,
+    uint64_t protocol_version)
     : communication_(communication),
       count_threshold_(count_threshold),
       tick_threshold_(tick_threshold),
+      protocol_version_(protocol_version),
       counter_(0),
       ticktime_(get_clock_time()),
       is_running_(false),
@@ -270,7 +275,7 @@ void linear_mixer::register_api(rpc_server_t& server) {
       jubatus::util::lang::bind(&linear_mixer::put_diff,
                                 this,
                                 jubatus::util::lang::_1));
-  server.add<byte_buffer(int)>(  // NOLINT
+  server.add<std::pair<uint64_t, byte_buffer>(int)>(  // NOLINT
       "get_model",
       jubatus::util::lang::bind(&linear_mixer::get_model,
                                 this,
@@ -367,8 +372,10 @@ void linear_mixer::stabilizer_loop() {
           || (0 < tick_threshold_
               && new_ticktime - ticktime_ > tick_threshold_))
           && (0 < counter_)) {
+        lk.unlock();
         if (zklock->try_lock()) {
           LOG(INFO) << "got ZooKeeper lock, starting mix";
+          common::unique_lock lk(m_);
           counter_ = 0;
           ticktime_ = new_ticktime;
 
@@ -382,7 +389,9 @@ void linear_mixer::stabilizer_loop() {
       }
 
       if (is_obsolete_) {
+        lk.unlock();
         if (zklock->try_lock()) {
+          common::unique_lock lk(m_);
           if (is_obsolete_) {
             LOG(INFO) << "start to get model from other server";
             lk.unlock();
@@ -543,7 +552,7 @@ byte_buffer linear_mixer::get_diff(int a) {
   return bytes;
 }
 
-byte_buffer linear_mixer::get_model(int a) const {
+std::pair<uint64_t, byte_buffer> linear_mixer::get_model(int a) const {
   scoped_rlock lk_read(model_mutex_);
 
   msgpack::sbuffer packed;
@@ -555,11 +564,16 @@ byte_buffer linear_mixer::get_model(int a) const {
   LOG(INFO) << "sending learning-model. size = "
             << jubatus::util::lang::lexical_cast<string>(packed.size());
 
-  return byte_buffer(packed.data(), packed.size());
+  return std::make_pair(
+      protocol_version_, byte_buffer(packed.data(), packed.size()));
 }
 
 void linear_mixer::update_model() {
-  const byte_buffer model_serialized = communication_->get_model();
+  std::pair<uint64_t, byte_buffer> got_model =
+      communication_->get_model();
+
+  uint64_t got_protocol_version = got_model.first;
+  byte_buffer model_serialized = got_model.second;
 
   if (model_serialized.size() == 0) {
     // it means "no other server"
@@ -568,6 +582,14 @@ void linear_mixer::update_model() {
     communication_->register_active_list();
     return;
   }
+
+  if (got_protocol_version != protocol_version_) {
+    LOG(ERROR) << "MIX protocol version mismatch detected, going down; "
+               << "expected " << protocol_version_
+               << ", got " << got_protocol_version;
+    jubatus::server::common::shutdown_server();
+  }
+
   msgpack::unpacked unpacked;
   msgpack::unpack(&unpacked, model_serialized.ptr(), model_serialized.size());
   {

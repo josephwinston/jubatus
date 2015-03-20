@@ -1,3 +1,83 @@
+Release 0.7.0 - 2015/02/23
+--------------------------
+
+* New machine learning service
+    * Distributed Multi-Armed Bandit (jubabandit) (#932)
+
+* Improvements
+    * Add golang client (experimental) (#870, #907, #909, #923, )
+    * Add support for combination feature (#925)
+    * nearest_neighbor: Implement get_all_rows API (#918)
+    * classifier: Add example file for NN-based classifier (#921)
+    * Upgrade to MessagePack 0.5.9 (#926)
+    * Update copyright (#906, #920, #927)
+
+* Bug fixes
+    * Fix memory leak when doing MIX (#914)
+    * Fix RPC tests occasionally fails (#905)
+
+Release 0.6.6 - 2014/12/22
+--------------------------
+
+* Improvements
+    * Detect logger configuration error on startup (#895, #902)
+
+Release 0.6.5 - 2014/11/25
+--------------------------
+
+* Improvements
+    * Enable libstdc++ debug mode when configured using `--enable-debug` (#887, #889)
+
+* Buf fixes
+    * Fix thread ID in logs not printed properly on OS X (#874, #894)
+    * Remove unused `--disable-eigen` configure option (#890, #893)
+
+Release 0.6.4 - 2014/10/20
+--------------------------
+
+* New machine learning service
+    * Distributed Burst Detection (jubaburst)
+
+* Improvements
+    * Compatibility verification when joining to cluster (#864, #882)
+
+Release 0.6.3 - 2014/09/29
+--------------------------
+
+* Improvements
+    * Add jubadump to RPM / DEB package (#856)
+
+* Bug fixes
+    * Fix jubactl to work without specifying "-X" option (#872)
+    * Fix log4cxx error message displayed on startup (#873)
+
+Release 0.6.2 - 2014/08/25
+--------------------------
+
+* Improvements
+    * Reload logging configuration on SIGHUP (#838, #861)
+    * Display plugin version when loaded (#740, #865)
+    * Register itself as active after server is started (#854, #863)
+    * Push mixers now excludes himself from MIX peer candidates (#842, #860)
+* Bug fixes
+    * anomaly: Fix add requets returing error when using light_lof (#849, #853)
+    * Fix proxies does not work with push_mixer (#803)
+    * Do not block update RPC request while acquiring ZooKeeper lock (#618, #862)
+    * Fix IDL errors (#851, #858, #859)
+    * Remove unused core_headers reference (#811, #848)
+
+Release 0.6.1 - 2014/07/22
+--------------------------
+
+* Improvements
+    * Support for OS X Mavericks (#833)
+    * Add sanity check configure option (#835)
+    * Fix linear_mixer to use interconnect_timeout (#720)
+    * Add ABI version number to object file (#812)
+    * #825, #832, #847
+* Bug fixes
+    * Fix timed-out connection instances are left in the pool (#836, #837)
+
 Release 0.6.0 - 2014/06/23
 --------------------------
 

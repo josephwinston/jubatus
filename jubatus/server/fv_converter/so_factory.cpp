@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2014 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2014 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,11 +20,13 @@
 
 #include "dynamic_string_filter.hpp"
 #include "dynamic_binary_feature.hpp"
+#include "dynamic_combination_feature.hpp"
 #include "dynamic_num_feature.hpp"
 #include "dynamic_num_filter.hpp"
 #include "dynamic_string_feature.hpp"
 
 using jubatus::core::fv_converter::binary_feature;
+using jubatus::core::fv_converter::combination_feature;
 using jubatus::core::fv_converter::num_filter;
 using jubatus::core::fv_converter::num_feature;
 using jubatus::core::fv_converter::string_feature;
@@ -43,6 +45,17 @@ binary_feature* so_factory::create_binary_feature(
     const std::string& path = get_or_die(params, "path");
     const std::string& function = get_or_die(params, "function");
     return new dynamic_binary_feature(path, function, params);
+  }
+  return NULL;
+}
+
+combination_feature* so_factory::create_combination_feature(
+    const std::string& name,
+    const param_t& params) const {
+  if (name == "dynamic") {
+    const std::string& path = get_or_die(params, "path");
+    const std::string& function = get_or_die(params, "function");
+    return new dynamic_combination_feature(path, function, params);
   }
   return NULL;
 }

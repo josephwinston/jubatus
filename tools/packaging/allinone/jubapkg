@@ -65,11 +65,8 @@ do_download() {
 	mkdir -p "${SOURCE_DIR}"
 	pushd "${SOURCE_DIR}"
 
-	# pkg-config
-	download_url http://pkgconfig.freedesktop.org/releases/pkg-config-${PKG_VER}.tar.gz
-
 	# MessagePack
-	download_url http://msgpack.org/releases/cpp/msgpack-${MSGPACK_VER}.tar.gz
+	download_url http://github.com/msgpack/msgpack-c/archive/cpp-${MSGPACK_VER}.tar.gz
 
 	# Oniguruma
 	download_url http://www.geocities.jp/kosako3/oniguruma/archive/onig-${ONIG_VER}.tar.gz
@@ -114,6 +111,13 @@ do_download() {
 	git checkout ${JUBATUS_VER}
 	popd
 
+    # jubadump
+    rm -rf jubadump
+    git clone https://github.com/jubatus/jubadump.git jubadump
+    pushd jubadump
+    git checkout ${JUBADUMP_VER}
+    popd
+
 	popd
 	echo "----- Download Completed -----"
 	return 0
@@ -141,7 +145,7 @@ do_build() {
 	export PATH="${DEST_DIR}/${PREFIX}/bin:${PATH}"
 	export CPLUS_INCLUDE_PATH="${DEST_DIR}/${PREFIX}/include"
 	export LD_LIBRARY_PATH="${DEST_DIR}/${PREFIX}/lib"
-	export PKG_CONFIG_PATH="${DEST_DIR}/${PREFIX}/lib/pkgconfig:/usr/lib64/pkgconfig:/usr/lib/pkgconfig"
+	export PKG_CONFIG_PATH="${DEST_DIR}/${PREFIX}/lib/pkgconfig"
 
 	mkdir -p "${BUILD_DIR}"
 	pushd "${BUILD_DIR}"
@@ -150,24 +154,15 @@ do_build() {
 	DOC_DIR="${DEST_DIR}/${PREFIX}/share/doc"
 	mkdir -p "${DOC_DIR}"
 
-	# pkg-config
-	tar zxf ${SOURCE_DIR}/pkg-config-${PKG_VER}.tar.gz
-	pushd pkg-config-${PKG_VER}
-	./configure --prefix=${PREFIX}
-	make
-	make install DESTDIR=${DEST_DIR}
-	mkdir -p "${DOC_DIR}/pkg-config-${PKG_VER}"
-	cp -a AUTHORS ChangeLog COPYING NEWS README "${DOC_DIR}/pkg-config-${PKG_VER}"
-	popd
-
 	# MessagePack
-	tar zxf ${SOURCE_DIR}/msgpack-${MSGPACK_VER}.tar.gz
-	pushd msgpack-${MSGPACK_VER}
+	tar zxf ${SOURCE_DIR}/cpp-${MSGPACK_VER}.tar.gz
+	pushd msgpack-c-cpp-${MSGPACK_VER}
+	./bootstrap
 	./configure --prefix=${PREFIX}
 	make
 	make install DESTDIR=${DEST_DIR}
-	mkdir -p "${DOC_DIR}/msgpack-${MSGPACK_VER}"
-	cp -a AUTHORS ChangeLog COPYING LICENSE NEWS NOTICE README README.md "${DOC_DIR}/msgpack-${MSGPACK_VER}"
+	mkdir -p "${DOC_DIR}/msgpack-c-cpp-${MSGPACK_VER}"
+	cp -a AUTHORS ChangeLog COPYING LICENSE NEWS NOTICE README README.md "${DOC_DIR}/msgpack-c-cpp-${MSGPACK_VER}"
 	popd
 
 	# Jubatus MPIO
@@ -259,6 +254,16 @@ do_build() {
 	./waf install --destdir=${DEST_DIR}
 	mkdir -p "${DOC_DIR}/jubatus"
 	cp -a LICENSE README.rst ChangeLog.rst "${DOC_DIR}/jubatus"
+	popd
+
+    # jubadump
+    cp -rp ${SOURCE_DIR}/jubadump jubadump
+    pushd jubadump
+	LDFLAGS="-L${DEST_DIR}/${PREFIX}/lib" ./waf configure --prefix=${PREFIX}
+	./waf build
+	./waf install --destdir=${DEST_DIR}
+	mkdir -p "${DOC_DIR}/jubadump"
+	cp -a LICENSE README.rst "${DOC_DIR}/jubadump"
 	popd
 
 	# Profile

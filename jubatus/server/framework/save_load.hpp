@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2013 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -17,6 +17,7 @@
 #ifndef JUBATUS_SERVER_FRAMEWORK_SAVE_LOAD_HPP_
 #define JUBATUS_SERVER_FRAMEWORK_SAVE_LOAD_HPP_
 
+#include <stdio.h>
 #include <string>
 #include <iostream>
 
@@ -26,7 +27,7 @@ namespace jubatus {
 namespace server {
 namespace framework {
 
-void save_server(std::ostream& os,
+void save_server(FILE* fp,
     const server_base& server, const std::string& id);
 void load_server(std::istream& is,
     server_base& server, const std::string& id);

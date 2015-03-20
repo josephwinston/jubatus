@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011-2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011-2013 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,8 @@ namespace mixer {
 mixer* create_mixer(
     const server_argv& a,
     const jubatus::util::lang::shared_ptr<common::lock_service>& zk,
-    jubatus::util::concurrent::rw_mutex& model_mutex);
+    jubatus::util::concurrent::rw_mutex& model_mutex,
+    uint64_t protocol_version);
 
 }  // namespace mixer
 }  // namespace framework

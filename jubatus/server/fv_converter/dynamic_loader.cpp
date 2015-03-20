@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,9 +20,9 @@
 #include <stdlib.h>
 #include <iostream>
 #include <string>
-#include "jubatus/server/common/logger/logger.hpp"
 #include "jubatus/core/fv_converter/exception.hpp"
 #include "../common/filesystem.hpp"
+#include "../common/logger/logger.hpp"
 
 using jubatus::core::fv_converter::converter_exception;
 
@@ -70,7 +70,9 @@ dynamic_loader::dynamic_loader(const std::string& path)
     }
   }
 
-  if (!handle) {
+  handle_ = handle;
+
+  if (!handle_) {
     char* error = dlerror();
     throw JUBATUS_EXCEPTION(
         converter_exception(
@@ -79,9 +81,16 @@ dynamic_loader::dynamic_loader(const std::string& path)
         << jubatus::core::common::exception::error_file_name(path)
         << jubatus::core::common::exception::error_message(error));
   } else {
-    LOG(INFO) << "plugin loaded: " << common::real_path(loaded_path);
+    try {
+      typedef std::string (*func_t)(void);
+      func_t version = reinterpret_cast<func_t>(load_symbol("version"));
+      LOG(INFO) << "plugin loaded: " << common::real_path(loaded_path)
+                << " version: " << version();
+    } catch (converter_exception) {
+      LOG(WARN) << "plugin loaded: " << common::real_path(loaded_path)
+                << " but version information is unavailable";
+    }
   }
-  handle_ = handle;
 }
 
 dynamic_loader::~dynamic_loader() {

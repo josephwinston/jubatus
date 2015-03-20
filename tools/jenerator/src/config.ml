@@ -1,6 +1,6 @@
 (*
  Jubatus: Online machine learning framework for distributed environment
- Copyright (C) 2013 Preferred Infrastructure and Nippon Telegraph and
+ Copyright (C) 2013 Preferred Networks and Nippon Telegraph and
  Telephone Corporation.
 
  This library is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ let usage =
   "usage: jenerator -l <lang> [-o <out>] [-i] [-n <namespace>] [-t] [-g <includeguard>] idl ...\n"
 ;;
 
-let languages = [ "server"; "cpp"; "python" ; "java"; "ruby"; ]
+let languages = [ "server"; "cpp"; "python" ; "java"; "ruby"; "go" ]
 ;;
 
 let exit_with_message specs msg =

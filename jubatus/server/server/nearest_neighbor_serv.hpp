@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011-2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011-2013 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -63,6 +63,8 @@ class nearest_neighbor_serv : public framework::server_base {
   neighbor_result similar_row_from_id(const std::string& id, size_t ret_num);
   neighbor_result similar_row_from_datum(const core::fv_converter::datum&,
       size_t);
+
+  std::vector<std::string> get_all_rows() const;
 
  private:
   void check_set_config()const;

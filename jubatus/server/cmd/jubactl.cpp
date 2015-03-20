@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,13 +20,13 @@
 #include <cstring>
 
 #include <jubatus/msgpack/rpc/client.h>
-#include "jubatus/server/common/logger/logger.hpp"
 #include "jubatus/util/lang/function.h"
 
 #include "jubatus/core/common/exception.hpp"
 #include "../third_party/cmdline/cmdline.h"
 #include "../common/zk.hpp"
 #include "../common/membership.hpp"
+#include "../common/logger/logger.hpp"
 #include "../framework/server_util.hpp"
 
 static const std::string PROGNAME(JUBATUS_APPNAME "ctl");
@@ -58,6 +58,10 @@ try {
   // We don't provide logging configuration feature for command line tools;
   // just print logs to standard output.
   jubatus::server::common::logger::configure();
+  if (!jubatus::server::common::logger::is_configured()) {
+    std::cerr << "failed to configure logger" << std::endl;
+    ::exit(1);
+  }
 
   cmdline::parser p;
 
@@ -87,7 +91,8 @@ try {
       "[start] directory to output logs (instead of stderr)", false, "");
   p.add<std::string>("log_config", 'G',
       "[start] log4cxx XML configuration file", false, "");
-  p.add<std::string>("mixer", 'X', "[start] mixer strategy", false, "");
+  p.add<std::string>("mixer", 'X',
+      "[start] mixer strategy", false, "linear_mixer");
   p.add<int>("interval_sec", 'S', "[start] mix interval by seconds", false, 16);
   p.add<int>("interval_count", 'I',
       "[start] mix interval by update count", false, 512);

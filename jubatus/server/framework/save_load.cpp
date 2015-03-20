@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2013 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,14 +20,15 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include "jubatus/server/common/logger/logger.hpp"
 #include "jubatus/util/lang/cast.h"
 
 #include "jubatus/core/common/exception.hpp"
 #include "jubatus/core/common/big_endian.hpp"
-#include "jubatus/core/common/crc32.hpp"
 #include "jubatus/core/framework/mixable.hpp"
 #include "jubatus/core/framework/stream_writer.hpp"
+
+#include "../common/logger/logger.hpp"
+#include "../common/crc32.hpp"
 
 using jubatus::core::common::write_big_endian;
 using jubatus::core::common::read_big_endian;
@@ -84,16 +85,20 @@ struct system_data_container {
 uint32_t calc_crc32(const char* header,  // header size is 28 (fixed)
     const char* system_data, uint64_t system_data_size,
     const char* user_data, uint64_t user_data_size) {
-  uint32_t crc32 = core::common::calc_crc32(header, 28);
-  crc32 = core::common::calc_crc32(&header[32], 16, crc32);
-  crc32 = core::common::calc_crc32(system_data, system_data_size, crc32);
-  crc32 = core::common::calc_crc32(user_data, user_data_size, crc32);
+  uint32_t crc32 = common::calc_crc32(header, 28);
+  crc32 = common::calc_crc32(&header[32], 16, crc32);
+  crc32 = common::calc_crc32(system_data, system_data_size, crc32);
+  crc32 = common::calc_crc32(user_data, user_data_size, crc32);
   return crc32;
+}
+
+bool fwrite_helper(const char* buffer, size_t size, FILE* fp) {
+  return fwrite(buffer, 1, size, fp) == size;
 }
 
 }  // namespace
 
-void save_server(std::ostream& os,
+void save_server(FILE* fp,
     const server_base& server, const std::string& id) {
   if (id == "") {
     throw JUBATUS_EXCEPTION(
@@ -134,9 +139,15 @@ void save_server(std::ostream& os,
       user_data_buf.data(), user_data_buf.size());
   write_big_endian(crc32, &header_buf[28]);
 
-  os.write(header_buf, 48);
-  os.write(system_data_buf.data(), system_data_buf.size());
-  os.write(user_data_buf.data(), user_data_buf.size());
+  if (!fwrite_helper(header_buf, sizeof(header_buf), fp)) {
+    throw std::ios_base::failure("Failed to write header_buf.");
+  }
+  if (!fwrite_helper(system_data_buf.data(), system_data_buf.size(), fp)) {
+    throw std::ios_base::failure("Failed to write system_data_buf.");
+  }
+  if (!fwrite_helper(user_data_buf.data(), user_data_buf.size(), fp)) {
+    throw std::ios_base::failure("Failed to write user_data_buf.");
+  }
 }
 
 void load_server(std::istream& is,

@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -39,6 +39,7 @@
 #include <jubatus/client/regression_client.hpp>
 #include <jubatus/client/graph_client.hpp>
 #include <jubatus/client/anomaly_client.hpp>
+#include <jubatus/client/burst_client.hpp>
 #include <jubatus/client/nearest_neighbor_client.hpp>
 #include <jubatus/client/clustering_client.hpp>
 

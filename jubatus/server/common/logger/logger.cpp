@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2014 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2014 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -34,6 +34,16 @@
 
 #define LOGGER_NAME "jubatus"
 
+namespace {
+
+#ifdef __APPLE__
+const int gettid = SYS_thread_selfid;
+#else
+const int gettid = SYS_gettid;
+#endif
+
+}  // namespace
+
 using jubatus::util::lang::lexical_cast;
 
 namespace jubatus {
@@ -59,7 +69,7 @@ stream_logger::stream_logger(
       file_(file),
       line_(line),
       abort_(abort),
-      thread_id_(syscall(SYS_gettid)) {}
+      thread_id_(::syscall(gettid)) {}
 
 stream_logger::~stream_logger() {
   log4cxx::MDC::put("tid", lexical_cast<std::string>(thread_id_));
@@ -92,6 +102,11 @@ void configure() {
 void configure(const std::string& config_file) {
   // Exception will not be thrown even if there is an error in config file.
   log4cxx::xml::DOMConfigurator::configure(config_file);
+}
+
+bool is_configured() {
+  log4cxx::LoggerPtr rootLogger = log4cxx::Logger::getRootLogger();
+  return rootLogger->getAllAppenders().size() != 0;
 }
 
 }  // namespace logger

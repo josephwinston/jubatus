@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2011 Preferred Networks and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,6 @@
 
 #include <string>
 #include <vector>
-#include "jubatus/server/common/logger/logger.hpp"
 
 #include "jubatus/util/lang/function.h"
 #include "jubatus/util/lang/shared_ptr.h"
@@ -28,6 +27,7 @@
 #include "jubatus/util/concurrent/threading_model.h"
 
 #include "lock_service.hpp"
+#include "logger/logger.hpp"
 #include ZOOKEEPER_HEADER
 
 namespace jubatus {
@@ -58,6 +58,10 @@ class zk : public lock_service {
   bool bind_watcher(
       const std::string& path,
       jubatus::util::lang::function<void(int, int, std::string)>&);
+
+  bool bind_child_watcher(
+      const std::string& path,
+      const jubatus::util::lang::function<void(int, int, std::string)>&);
 
   bool bind_delete_watcher(
       const std::string& path,
